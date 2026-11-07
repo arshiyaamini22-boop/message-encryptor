@@ -137,6 +137,12 @@ footer {
   padding: 20px;
 }
 </style>
+
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#101827">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Encryptor Pro">
+
 </head>
 
 <body>
@@ -439,5 +445,16 @@ async function processFile() {
   }
 }
 </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => console.log("PWA Service Worker registered"))
+      .catch((error) => console.error("Service Worker error:", error));
+  });
+}
+</script>
+
 </body>
 </html>
