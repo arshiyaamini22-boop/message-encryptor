@@ -1,0 +1,443 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Message Encryptor Pro</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 25px 15px;
+  background: linear-gradient(135deg,#101827,#172b46);
+  color: #f1f5f9;
+  font-family: Vazirmatn, sans-serif;
+}
+
+.container {
+  max-width: 760px;
+  margin: auto;
+}
+
+header {
+  text-align: center;
+  margin: 25px 0;
+}
+
+header h1 {
+  font-size: 30px;
+  color: #60a5fa;
+  margin-bottom: 5px;
+}
+
+header p { color: #aabbd0; }
+
+.card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+h2 { font-size: 18px; margin-top: 0; }
+
+label {
+  display: block;
+  margin: 15px 0 8px;
+  font-weight: 600;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  background: #0f172a;
+  color: white;
+  font: inherit;
+  direction: rtl;
+}
+
+textarea {
+  min-height: 125px;
+  resize: vertical;
+}
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 17px;
+  margin: 6px 3px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  background: #2563eb;
+  color: white;
+}
+
+button:hover { filter: brightness(1.15); }
+
+.secondary { background: #475569; }
+.success { background: #15803d; }
+.danger { background: #b91c1c; }
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.tabs button { flex: 1; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.result {
+  margin-top: 15px;
+  padding: 13px;
+  border-radius: 10px;
+  background: #0f172a;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  min-height: 45px;
+  direction: ltr;
+  text-align: left;
+}
+
+.note {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 2;
+}
+
+#status {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 9px;
+  display: none;
+}
+
+.history-item {
+  padding: 10px;
+  border-bottom: 1px solid #334155;
+  color: #cbd5e1;
+  font-size: 14px;
+}
+
+footer {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 20px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>🔐 Message Encryptor Pro</h1>
+  <p>ابزار رمزنگاری و رمزگشایی امن متن و فایل</p>
+</header>
+
+<div class="card">
+  <h2>🔑 مدیریت کلید رمزنگاری</h2>
+  <label for="key">کلید محرمانه AES-256</label>
+  <input id="key" type="text" placeholder="کلید خود را وارد کنید">
+
+  <button onclick="generateKey()">ساخت کلید جدید</button>
+  <button class="secondary" onclick="copyKey()">کپی کلید</button>
+  <button class="secondary" onclick="downloadKey()">دانلود کلید</button>
+
+  <p class="note">
+    کلید را در مکانی امن نگه دار. بدون آن، رمزگشایی اطلاعات ممکن نیست.
+    کلید را با افراد دیگر به اشتراک نگذار.
+  </p>
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <button onclick="showTab('encrypt')">🔒 رمزنگاری متن</button>
+    <button class="secondary" onclick="showTab('decrypt')">🔓 رمزگشایی متن</button>
+  </div>
+
+  <section id="encrypt" class="tab-content active">
+    <h2>رمزنگاری متن</h2>
+    <label for="plain">متن موردنظر</label>
+    <textarea id="plain" placeholder="متن فارسی یا انگلیسی را وارد کن..."></textarea>
+    <button onclick="encryptText()">رمزنگاری متن</button>
+
+    <label>متن رمزنگاری‌شده</label>
+    <div id="encrypted" class="result">نتیجه اینجا نمایش داده می‌شود.</div>
+    <button class="secondary" onclick="copyResult('encrypted')">کپی نتیجه</button>
+  </section>
+
+  <section id="decrypt" class="tab-content">
+    <h2>رمزگشایی متن</h2>
+    <label for="cipher">متن رمزنگاری‌شده</label>
+    <textarea id="cipher" placeholder="متن رمزنگاری‌شده را وارد کن..."></textarea>
+    <button onclick="decryptText()">رمزگشایی متن</button>
+
+    <label>متن اصلی</label>
+    <div id="decrypted" class="result">نتیجه اینجا نمایش داده می‌شود.</div>
+    <button class="secondary" onclick="copyResult('decrypted')">کپی متن اصلی</button>
+  </section>
+</div>
+
+<div class="card">
+  <h2>📁 رمزنگاری و رمزگشایی فایل</h2>
+  <p class="note">یک فایل انتخاب کن. برای رمزگشایی، فایل رمزنگاری‌شده با پسوند MEP را انتخاب کن.</p>
+  <input type="file" id="fileInput">
+  <button onclick="processFile()">پردازش فایل</button>
+</div>
+
+<div class="card">
+  <h2>📋 تاریخچه عملیات</h2>
+  <p class="note">فقط نوع عملیات و زمان آن ثبت می‌شود؛ متن‌ها و کلیدها ذخیره نمی‌شوند. تاریخچه با بستن صفحه پاک می‌شود.</p>
+  <div id="history">هنوز عملیاتی انجام نشده است.</div>
+  <button class="danger" onclick="clearHistory()">پاک کردن تاریخچه</button>
+</div>
+
+<div id="status"></div>
+
+<footer>
+  Message Encryptor Pro · AES-256-GCM
+  <br>
+  پردازش رمزنگاری در مرورگر انجام می‌شود.
+</footer>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let historyItems = [];
+
+function showStatus(message, error = false) {
+  const box = $("status");
+  box.style.display = "block";
+  box.style.background = error ? "#7f1d1d" : "#14532d";
+  box.textContent = message;
+}
+
+function showTab(id) {
+  document.querySelectorAll(".tab-content").forEach(
+    el => el.classList.remove("active")
+  );
+  $(id).classList.add("active");
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 32768) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 32768));
+  }
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  const binary = atob(value);
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+
+function getKeyBytes() {
+  const value = $("key").value.trim();
+  if (!value) throw new Error("ابتدا کلید را وارد یا تولید کن.");
+
+  const bytes = base64ToBytes(value);
+  if (bytes.length !== 32) {
+    throw new Error("کلید معتبر نیست. کلید AES-256 باید ۳۲ بایت باشد.");
+  }
+  return bytes;
+}
+
+async function importKey() {
+  return crypto.subtle.importKey(
+    "raw",
+    getKeyBytes(),
+    { name: "AES-GCM" },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+function generateKey() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  $("key").value = bytesToBase64(bytes);
+  showStatus("کلید جدید ساخته شد. آن را در جای امن ذخیره کن.");
+}
+
+async function copyText(value) {
+  if (!value) throw new Error("چیزی برای کپی کردن وجود ندارد.");
+  await navigator.clipboard.writeText(value);
+  showStatus("با موفقیت کپی شد.");
+}
+
+async function copyKey() {
+  try { await copyText($("key").value); }
+  catch(e) { showStatus(e.message, true); }
+}
+
+async function copyResult(id) {
+  try { await copyText($(id).textContent); }
+  catch(e) { showStatus(e.message, true); }
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadKey() {
+  const value = $("key").value.trim();
+  if (!value) {
+    showStatus("ابتدا یک کلید تولید کن.", true);
+    return;
+  }
+  downloadBlob(new Blob([value], {type:"text/plain"}), "secret-key.txt");
+  showStatus("فایل کلید آماده شد. آن را محرمانه نگه دار.");
+}
+
+function addHistory(action) {
+  historyItems.unshift({
+    action,
+    time: new Date().toLocaleString("fa-IR")
+  });
+  $("history").innerHTML = "";
+  historyItems.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.textContent = item.action + " — " + item.time;
+    $("history").appendChild(div);
+  });
+}
+
+function clearHistory() {
+  historyItems = [];
+  $("history").textContent = "تاریخچه پاک شد.";
+}
+
+async function encryptText() {
+  try {
+    const text = $("plain").value;
+    if (!text) throw new Error("ابتدا متن را وارد کن.");
+
+    const key = await importKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const data = new TextEncoder().encode(text);
+
+    const encrypted = await crypto.subtle.encrypt(
+      {name:"AES-GCM", iv},
+      key,
+      data
+    );
+
+    const output = "MEP1." +
+      bytesToBase64(iv) + "." +
+      bytesToBase64(new Uint8Array(encrypted));
+
+    $("encrypted").textContent = output;
+    addHistory("رمزنگاری متن");
+    showStatus("متن با موفقیت رمزنگاری شد.");
+  } catch(e) {
+    showStatus(e.message || "خطا در رمزنگاری.", true);
+  }
+}
+
+async function decryptText() {
+  try {
+    const input = $("cipher").value.trim();
+    const parts = input.split(".");
+    if (parts.length !== 3 || parts[0] !== "MEP1") {
+      throw new Error("قالب متن رمزنگاری‌شده معتبر نیست.");
+    }
+
+    const key = await importKey();
+    const iv = base64ToBytes(parts[1]);
+    const data = base64ToBytes(parts[2]);
+
+    const decrypted = await crypto.subtle.decrypt(
+      {name:"AES-GCM", iv},
+      key,
+      data
+    );
+
+    $("decrypted").textContent =
+      new TextDecoder("utf-8", {fatal:true}).decode(decrypted);
+
+    addHistory("رمزگشایی متن");
+    showStatus("متن با موفقیت رمزگشایی شد.");
+  } catch(e) {
+    showStatus("رمزگشایی انجام نشد. کلید یا متن ممکن است اشتباه باشد.", true);
+  }
+}
+
+async function processFile() {
+  try {
+    const file = $("fileInput").files[0];
+    if (!file) throw new Error("ابتدا یک فایل انتخاب کن.");
+
+    const key = await importKey();
+
+    if (file.name.toLowerCase().endsWith(".mep")) {
+      const wrapper = JSON.parse(await file.text());
+
+      if (wrapper.format !== "MEPF1") {
+        throw new Error("قالب فایل رمزنگاری‌شده معتبر نیست.");
+      }
+
+      const decrypted = await crypto.subtle.decrypt(
+        {name:"AES-GCM", iv:base64ToBytes(wrapper.iv)},
+        key,
+        base64ToBytes(wrapper.data)
+      );
+
+      downloadBlob(
+        new Blob([decrypted], {type:"application/octet-stream"}),
+        wrapper.name || "decrypted-file"
+      );
+
+      addHistory("رمزگشایی فایل");
+      showStatus("فایل با موفقیت رمزگشایی شد.");
+    } else {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const data = await file.arrayBuffer();
+
+      const encrypted = await crypto.subtle.encrypt(
+        {name:"AES-GCM", iv},
+        key,
+        data
+      );
+
+      const wrapper = {
+        format: "MEPF1",
+        name: file.name,
+        iv: bytesToBase64(iv),
+        data: bytesToBase64(new Uint8Array(encrypted))
+      };
+
+      downloadBlob(
+        new Blob([JSON.stringify(wrapper)], {type:"application/octet-stream"}),
+        file.name + ".mep"
+      );
+
+      addHistory("رمزنگاری فایل");
+      showStatus("فایل با موفقیت رمزنگاری شد.");
+    }
+  } catch(e) {
+    showStatus(e.message || "پردازش فایل انجام نشد. کلید یا فایل را بررسی کن.", true);
+  }
+}
+</script>
+</body>
+</html>
